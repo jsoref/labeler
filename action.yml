@@ -11,7 +11,7 @@ inputs:
     required: false
   sync-labels:
     description: 'Whether or not to remove labels when matching files are reverted'
-    default: false
+    default: 'false'
     required: false
 
 runs:

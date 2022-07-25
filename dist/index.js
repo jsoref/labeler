@@ -44,12 +44,21 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const yaml = __importStar(__nccwpck_require__(1917));
 const minimatch_1 = __nccwpck_require__(3973);
+function stringToBoolean(input) {
+    if (typeof input === 'undefined') {
+        return false;
+    }
+    if (typeof input === 'boolean') {
+        return input;
+    }
+    return input.toLowerCase() === 'true' || input === '1';
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput("repo-token", { required: true });
             const configPath = core.getInput("configuration-path", { required: true });
-            const syncLabels = !!core.getInput("sync-labels", { required: false });
+            const syncLabels = stringToBoolean(core.getInput("sync-labels", { required: false }));
             const prNumber = getPrNumber();
             if (!prNumber) {
                 console.log("Could not get pull request number from context, exiting");

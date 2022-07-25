@@ -11,11 +11,22 @@ interface MatchConfig {
 type StringOrMatchConfig = string | MatchConfig;
 type ClientType = ReturnType<typeof github.getOctokit>;
 
+type StringOrBoolean = string | boolean
+function stringToBoolean(input?: StringOrBoolean): Boolean {
+  if (typeof input === 'undefined') {
+    return false;
+  }
+  if (typeof input === 'boolean') {
+    return input;
+  }
+  return input.toLowerCase() === 'true' || input === '1';
+}
+
 export async function run() {
   try {
     const token = core.getInput("repo-token", { required: true });
     const configPath = core.getInput("configuration-path", { required: true });
-    const syncLabels = !!core.getInput("sync-labels", { required: false });
+    const syncLabels = stringToBoolean(core.getInput("sync-labels", { required: false }));
 
     const prNumber = getPrNumber();
     if (!prNumber) {
