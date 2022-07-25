@@ -102,7 +102,9 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/labeler@v4
+    - uses: actions/labeler@v5
+      with:
+        label-fork: "${{ secrets.LABEL_FORK }}"
 ```
 
 #### Inputs

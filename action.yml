@@ -18,6 +18,10 @@ inputs:
     description: 'Whether or not to auto-include paths starting with dot (e.g. `.github`)'
     default: false
     required: false
+  label-fork:
+    description: 'Label fork'
+    default: 'false'
+    required: false
 
 runs:
   using: 'node16'

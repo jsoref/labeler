@@ -17,6 +17,12 @@ export async function run() {
     const configPath = core.getInput('configuration-path', {required: true});
     const syncLabels = !!core.getInput('sync-labels');
     const dot = core.getBooleanInput('dot');
+    const labelFork = !!core.getInput('label-fork');
+
+    if (!labelFork && github.context.payload.repository?.fork) {
+      console.log("Workflow is not configured to label forks, exiting");
+      return;
+    }
 
     const prNumber = getPrNumber();
     if (!prNumber) {

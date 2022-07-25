@@ -45,12 +45,18 @@ const github = __importStar(__nccwpck_require__(5438));
 const yaml = __importStar(__nccwpck_require__(1917));
 const minimatch_1 = __nccwpck_require__(2002);
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput('repo-token');
             const configPath = core.getInput('configuration-path', { required: true });
             const syncLabels = !!core.getInput('sync-labels');
             const dot = core.getBooleanInput('dot');
+            const labelFork = !!core.getInput('label-fork');
+            if (!labelFork && ((_a = github.context.payload.repository) === null || _a === void 0 ? void 0 : _a.fork)) {
+                console.log("Workflow is not configured to label forks, exiting");
+                return;
+            }
             const prNumber = getPrNumber();
             if (!prNumber) {
                 core.info('Could not get pull request number from context, exiting');
