@@ -60,12 +60,27 @@ export async function run() {
       }
     }
 
-    if (labels.length > 0) {
-      await addLabels(client, prNumber, labels);
-    }
+    try {
+      if (labels.length > 0) {
+        await addLabels(client, prNumber, labels);
+      }
 
-    if (syncLabels && labelsToRemove.length) {
-      await removeLabels(client, prNumber, labelsToRemove);
+      if (syncLabels && labelsToRemove.length) {
+        await removeLabels(client, prNumber, labelsToRemove);
+      }
+    } catch (error: any) {
+      if (error.name === 'HttpError' &&
+          error.message === 'Resource not accessible by integration') {
+        core.warning(
+          `It needs \`permissions: pull-requests: write\` to work. Update the workflow. See https://github.com/actions/labeler/blob/6a315d4ea58951035b498eef56668feaba24489f/README.md#create-workflow`,
+          {
+            title: `${process.env['GITHUB_ACTION_REPOSITORY']} running under '${github.context.eventName}' is misconfigured`
+          }
+        );
+        core.setFailed(error.message);
+      } else {
+        throw error;
+      }
     }
   } catch (error: any) {
     core.error(error);
