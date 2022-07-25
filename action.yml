@@ -13,6 +13,10 @@ inputs:
     description: 'Whether or not to remove labels when matching files are reverted'
     default: 'false'
     required: false
+  label-fork:
+    description: 'Label fork'
+    default: 'false'
+    required: false
 
 runs:
   using: 'node16'

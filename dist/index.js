@@ -54,11 +54,17 @@ function stringToBoolean(input) {
     return input.toLowerCase() === 'true' || input === '1';
 }
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput("repo-token", { required: true });
             const configPath = core.getInput("configuration-path", { required: true });
             const syncLabels = stringToBoolean(core.getInput("sync-labels", { required: false }));
+            const labelFork = stringToBoolean(core.getInput("label-fork", { required: false }));
+            if (!labelFork && ((_a = github.context.payload.repository) === null || _a === void 0 ? void 0 : _a.fork)) {
+                console.log("Workflow is not configured to label forks, exiting");
+                return;
+            }
             const prNumber = getPrNumber();
             if (!prNumber) {
                 console.log("Could not get pull request number from context, exiting");
