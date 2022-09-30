@@ -103,6 +103,7 @@ jobs:
     - uses: actions/labeler@v4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        label-fork: "${{ secrets.LABEL_FORK }}"
 ```
 
 _Note: This grants access to the `GITHUB_TOKEN` so the action can make calls to GitHub's rest API_

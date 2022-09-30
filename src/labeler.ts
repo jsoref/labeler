@@ -11,11 +11,28 @@ interface MatchConfig {
 type StringOrMatchConfig = string | MatchConfig;
 type ClientType = ReturnType<typeof github.getOctokit>;
 
+type StringOrBoolean = string | boolean
+function stringToBoolean(input?: StringOrBoolean): Boolean {
+  if (typeof input === 'undefined') {
+    return false;
+  }
+  if (typeof input === 'boolean') {
+    return input;
+  }
+  return input.toLowerCase() === 'true' || input === '1';
+}
+
 export async function run() {
   try {
     const token = core.getInput("repo-token", { required: true });
     const configPath = core.getInput("configuration-path", { required: true });
-    const syncLabels = !!core.getInput("sync-labels", { required: false });
+    const syncLabels = stringToBoolean(core.getInput("sync-labels", { required: false }));
+    const labelFork = stringToBoolean(core.getInput("label-fork", { required: false }));
+
+    if (!labelFork && github.context.payload.repository?.fork) {
+      console.log("Workflow is not configured to label forks, exiting");
+      return;
+    }
 
     const prNumber = getPrNumber();
     if (!prNumber) {
@@ -49,12 +66,27 @@ export async function run() {
       }
     }
 
-    if (labels.length > 0) {
-      await addLabels(client, prNumber, labels);
-    }
+    try {
+      if (labels.length > 0) {
+        await addLabels(client, prNumber, labels);
+      }
 
-    if (syncLabels && labelsToRemove.length) {
-      await removeLabels(client, prNumber, labelsToRemove);
+      if (syncLabels && labelsToRemove.length) {
+        await removeLabels(client, prNumber, labelsToRemove);
+      }
+    } catch (error: any) {
+      if (error.name === 'HttpError' &&
+          error.message === 'Resource not accessible by integration') {
+        core.warning(
+          `It needs \`permissions: pull-requests: write\` to work. Update the workflow. See https://github.com/actions/labeler/blob/6a315d4ea58951035b498eef56668feaba24489f/README.md#create-workflow`,
+          {
+            title: `${process.env['GITHUB_ACTION_REPOSITORY']} running under '${github.context.eventName}' is misconfigured`
+          }
+        );
+        core.setFailed(error.message);
+      } else {
+        throw error;
+      }
     }
   } catch (error: any) {
     core.error(error);

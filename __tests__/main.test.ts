@@ -78,6 +78,37 @@ describe("run", () => {
     });
   });
 
+  it("(with sync-labels: 'true') it deletes preexisting PR labels that no longer match the glob pattern", async () => {
+    let mockInput = {
+      "repo-token": "foo",
+      "configuration-path": "bar",
+      "sync-labels": "true",
+    };
+
+    jest
+      .spyOn(core, "getInput")
+      .mockImplementation((name: string, ...opts) => mockInput[name]);
+
+    usingLabelerConfigYaml("only_pdfs.yml");
+    mockGitHubResponseChangedFiles("foo.txt");
+    getPullMock.mockResolvedValue(<any>{
+      data: {
+        labels: [{ name: "touched-a-pdf-file" }],
+      },
+    });
+
+    await run();
+
+    expect(addLabelsMock).toHaveBeenCalledTimes(0);
+    expect(removeLabelMock).toHaveBeenCalledTimes(1);
+    expect(removeLabelMock).toHaveBeenCalledWith({
+      owner: "monalisa",
+      repo: "helloworld",
+      issue_number: 123,
+      name: "touched-a-pdf-file",
+    });
+  });
+
   it("(with sync-labels: false) it issues no delete calls even when there are preexisting PR labels that no longer match the glob pattern", async () => {
     let mockInput = {
       "repo-token": "foo",
