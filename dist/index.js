@@ -44,12 +44,27 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const yaml = __importStar(__nccwpck_require__(1917));
 const minimatch_1 = __nccwpck_require__(3973);
+function stringToBoolean(input) {
+    if (typeof input === 'undefined') {
+        return false;
+    }
+    if (typeof input === 'boolean') {
+        return input;
+    }
+    return input.toLowerCase() === 'true' || input === '1';
+}
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput("repo-token", { required: true });
             const configPath = core.getInput("configuration-path", { required: true });
-            const syncLabels = !!core.getInput("sync-labels", { required: false });
+            const syncLabels = stringToBoolean(core.getInput("sync-labels", { required: false }));
+            const labelFork = stringToBoolean(core.getInput("label-fork", { required: false }));
+            if (!labelFork && ((_a = github.context.payload.repository) === null || _a === void 0 ? void 0 : _a.fork)) {
+                console.log("Workflow is not configured to label forks, exiting");
+                return;
+            }
             const prNumber = getPrNumber();
             if (!prNumber) {
                 console.log("Could not get pull request number from context, exiting");
@@ -75,11 +90,25 @@ function run() {
                     labelsToRemove.push(label);
                 }
             }
-            if (labels.length > 0) {
-                yield addLabels(client, prNumber, labels);
+            try {
+                if (labels.length > 0) {
+                    yield addLabels(client, prNumber, labels);
+                }
+                if (syncLabels && labelsToRemove.length) {
+                    yield removeLabels(client, prNumber, labelsToRemove);
+                }
             }
-            if (syncLabels && labelsToRemove.length) {
-                yield removeLabels(client, prNumber, labelsToRemove);
+            catch (error) {
+                if (error.name === 'HttpError' &&
+                    error.message === 'Resource not accessible by integration') {
+                    core.warning(`It needs \`permissions: pull-requests: write\` to work. Update the workflow. See https://github.com/actions/labeler/blob/6a315d4ea58951035b498eef56668feaba24489f/README.md#create-workflow`, {
+                        title: `${process.env['GITHUB_ACTION_REPOSITORY']} running under '${github.context.eventName}' is misconfigured`
+                    });
+                    core.setFailed(error.message);
+                }
+                else {
+                    throw error;
+                }
             }
         }
         catch (error) {

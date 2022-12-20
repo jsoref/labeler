@@ -4,13 +4,18 @@ author: 'GitHub'
 inputs:
   repo-token:
     description: 'The GITHUB_TOKEN secret'
+    required: false
   configuration-path:
     description: 'The path for the label configurations'
     default: '.github/labeler.yml'
     required: false
   sync-labels:
     description: 'Whether or not to remove labels when matching files are reverted'
-    default: false
+    default: 'false'
+    required: false
+  label-fork:
+    description: 'Label fork'
+    default: 'false'
     required: false
 
 runs:
